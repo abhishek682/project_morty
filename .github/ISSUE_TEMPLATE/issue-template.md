@@ -9,11 +9,12 @@ assignees: ''
 
 ---
 name: Task
-about: Engineering / Infra / SRE task
+about: Project
 ---
 
 ## Summary
-<!-- What is this task? One or two lines -->
+- 
+- 
 
 ## Acceptance Criteria
 - [ ] 
