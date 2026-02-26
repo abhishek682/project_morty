@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rick-morty-config
+data:
+  RM_CACHE_TTL_SECONDS: "300"
+  RM_SYNC_INTERVAL_SECONDS: "900"
+  RM_RATE_LIMIT_PER_MINUTE: "60"
+  RM_OTEL_SERVICE_NAME: "rick-morty-api"

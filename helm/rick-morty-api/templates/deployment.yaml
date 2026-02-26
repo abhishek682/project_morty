@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rick-morty-api.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "rick-morty-api.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "rick-morty-api.name" . }}
+    spec:
+      serviceAccountName: {{ ternary (printf "%s-sa" (include "rick-morty-api.fullname" .)) (default "default" .Values.rbac.serviceAccountName) .Values.rbac.create }}
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: {{ include "rick-morty-api.fullname" . }}-config
+            - secretRef:
+                name: {{ default (printf "%s-secret" (include "rick-morty-api.fullname" .)) .Values.secrets.existingSecret }}
+          env:
+            - name: RM_LOG_FILE
+              value: {{ .Values.logging.logFile }}
+          volumeMounts:
+            - name: log-dir
+              mountPath: /var/log/app
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        - name: fluent-bit
+          image: cr.fluentbit.io/fluent/fluent-bit:2.2
+          volumeMounts:
+            - name: log-dir
+              mountPath: /var/log/app
+            - name: fluent-bit-config
+              mountPath: /fluent-bit/etc
+      volumes:
+        - name: log-dir
+          emptyDir: {}
+        - name: fluent-bit-config
+          configMap:
+            name: {{ include "rick-morty-api.fullname" . }}-fluent-bit

@@ -1,0 +1,53 @@
+{
+  "uid": "rick-morty-api",
+  "title": "Rick and Morty API",
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Request Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(rm_requests_total[1m]))",
+          "legendFormat": "rps"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "P95 Latency (s)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(rm_request_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache Hit Ratio",
+      "targets": [
+        {
+          "expr": "sum(rate(rm_cache_hits_total[5m])) / (sum(rate(rm_cache_hits_total[5m])) + sum(rate(rm_cache_misses_total[5m])))",
+          "legendFormat": "hit_ratio"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Upstream API Errors",
+      "targets": [
+        {
+          "expr": "sum(rate(rm_upstream_errors_total[5m]))",
+          "legendFormat": "errors"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    }
+  ]
+}

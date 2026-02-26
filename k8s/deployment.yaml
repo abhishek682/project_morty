@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rick-morty-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rick-morty-api
+  template:
+    metadata:
+      labels:
+        app: rick-morty-api
+    spec:
+      serviceAccountName: rick-morty-sa
+      containers:
+        - name: api
+          image: your-dockerhub-username/rick-morty-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: rick-morty-config
+            - secretRef:
+                name: rick-morty-secret
+          env:
+            - name: RM_LOG_FILE
+              value: /var/log/app/app.log
+          volumeMounts:
+            - name: log-dir
+              mountPath: /var/log/app
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        - name: fluent-bit
+          image: cr.fluentbit.io/fluent/fluent-bit:2.2
+          volumeMounts:
+            - name: log-dir
+              mountPath: /var/log/app
+            - name: fluent-bit-config
+              mountPath: /fluent-bit/etc
+      volumes:
+        - name: log-dir
+          emptyDir: {}
+        - name: fluent-bit-config
+          configMap:
+            name: fluent-bit-config

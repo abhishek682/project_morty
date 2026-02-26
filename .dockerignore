@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+tests
+configs
+deploy
+helm
+*.md
+*.log
+venv

@@ -1,0 +1,60 @@
+replicaCount: 2
+
+image:
+  repository: your-dockerhub-username/rick-morty-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: rick-morty.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: rick-morty-tls
+      hosts:
+        - rick-morty.local
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  cpuUtilization: 70
+  memoryUtilization: 75
+
+config:
+  cacheTtlSeconds: 300
+  syncIntervalSeconds: 900
+  rateLimitPerMinute: 60
+  otelServiceName: rick-morty-api
+
+secrets:
+  create: true
+  existingSecret: ""
+  databaseUrl: postgresql+psycopg2://app:app@postgres:5432/rickmorty
+  redisUrl: redis://redis:6379/0
+
+logging:
+  logFile: /var/log/app/app.log
+
+rbac:
+  create: true
+  serviceAccountName: ""
+
+alerts:
+  enabled: true
